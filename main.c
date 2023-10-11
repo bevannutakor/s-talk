@@ -9,13 +9,13 @@ int main(int argc, char *argv[]){
     //define variables
 
     if( argc == 4 ) {
-        int myPort = argv[1];
+        char* myPort = argv[1];
         char* remoteMachineName = argv[2];
-        int remotePort = argv[3];
+        char* remotePort = argv[3];
 
-        printf("The port: %d\n", myPort);
+        printf("The port: %s\n", myPort);
         printf("The remote machine: %s\n", remoteMachineName);
-        printf("The remote port: %d\n", remotePort);
+        printf("The remote port: %s\n", remotePort);
     } else {
         printf("This is incorrect please input 4 arguments");
     }
