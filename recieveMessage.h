@@ -1,5 +1,5 @@
 #include "list.h"
 
-void recieveCreateThread(char* myPort, List* messageList);
+void recieveCreateThread(char* myPort);
 void recieveCancelThread();
 void recieveFinishThread();

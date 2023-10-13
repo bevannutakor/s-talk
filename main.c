@@ -2,6 +2,9 @@
 #include <stdlib.h> 
 #include <string.h>
 
+#include "recieveMessage.h"
+#include "list.h"
+
 #define MAX_STR_LEN 1000
 
 int main(int argc, char *argv[]){
@@ -16,6 +19,10 @@ int main(int argc, char *argv[]){
         printf("The port: %s\n", myPort);
         printf("The remote machine: %s\n", remoteMachineName);
         printf("The remote port: %s\n", remotePort);
+
+        recieveCreateThread(myPort);
+        recieveFinishThread();
+        
     } else {
         printf("This is incorrect please input 4 arguments");
     }

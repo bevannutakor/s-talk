@@ -3,9 +3,10 @@
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h> 
-//#include <sys/socket.h>
-//#include <arpa/inet.h>
-//#include <netinet/in.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include "list.h"
 
@@ -15,12 +16,13 @@ static char* myPort;
 static List* messageList;
 static pthread_t recieveThread;
 
-static void recieverUDPSetup()
+static void* recieverUDPSetup()
 {
     //initialize network variables
     int socketInfo;
     int socketBind;
     struct addrinfo hints, *serverInfo, *listIterator;
+    char buffer[MAX_MSG_LEN];
     struct sockaddr_in peerAddress;
 
     memset(&hints, 0, sizeof hints);
@@ -32,8 +34,9 @@ static void recieverUDPSetup()
     int addrStatus = getaddrinfo(NULL, myPort, &hints, &serverInfo);
 
     if(addrStatus != 0){
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(addrStatus));
-        exit(1); //does the number matter?
+        printf("My PORT: %s\n: ", myPort);
+        fprintf(stderr, "getaddrinfo ERROR: %s\n", gai_strerror(addrStatus));
+        exit(1);
     }
 
     //get all ip addresses on user network and create a socket with one of them
@@ -67,18 +70,29 @@ static void recieverUDPSetup()
 
     //recive message from peer
     while(1){
-        //do stuff
+        //this needs to be modified so that it is getting messages from the linked list
+        socklen_t peerAddrLength = sizeof(peerAddress);
+        int reciever = recvfrom(socketInfo, buffer, MAX_MSG_LEN, 0, (struct sockaddr*) &peerAddress, &peerAddrLength);
+        int terminateIdx = (reciever < MAX_MSG_LEN) ? reciever : MAX_MSG_LEN - 1;
+        buffer[terminateIdx] = 0;
 
+        printf("%s", buffer);
     }
-
-    //when done with everything
-    //freeaddrinfo(serverInfo);
 }
 
 
-void recieveCreateThread(char* myPort, List* messageList)
+void recieveCreateThread(char* p)
 {
+    myPort = p;
+    //recieverUDPSetup();
 
+    //messageList = messageList;
+    int threadVal = pthread_create(&recieveThread, NULL, recieverUDPSetup, NULL);
+
+    if(threadVal != 0){
+        perror("There was an error with the thread");
+        exit(-1);
+    }
 }
 
 void recieveCancelThread()
@@ -88,5 +102,5 @@ void recieveCancelThread()
 
 void recieveFinishThread()
 {
-
+    pthread_join(recieveThread, NULL);
 }

@@ -1,7 +1,7 @@
-all: output
+all: build
 
-output: main.c
-	gcc -o output main.c recieveMessage.c
+build:
+	gcc -o output main.c recieveMessage.c -o s-talk -lpthread
 
 clean:
-	rm -f output
+	rm -f s-talk
