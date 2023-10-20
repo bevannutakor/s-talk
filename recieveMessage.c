@@ -9,12 +9,13 @@
 #include <netinet/in.h>
 
 #include "list.h"
+#include "printMessage.h"
 
-#define MAX_MSG_LEN 1024
+#define MAX_MSG_LEN 65506
 
 static char* myPort;
 static List* messageList;
-static pthread_t recieveThread;
+static pthread_t recieveUDPThread;
 
 static void* recieverUDPSetup()
 {
@@ -71,23 +72,37 @@ static void* recieverUDPSetup()
     //recive message from peer
     while(1){
         //this needs to be modified so that it is getting messages from the linked list
+        /*
+        What should happen -> a message has been recived
+                              so we insert the message into the front(head) of linked list
+                              after get a writing thread to write that message to the screen
+        */
         socklen_t peerAddrLength = sizeof(peerAddress);
-        int reciever = recvfrom(socketInfo, buffer, MAX_MSG_LEN, 0, (struct sockaddr*) &peerAddress, &peerAddrLength);
-        int terminateIdx = (reciever < MAX_MSG_LEN) ? reciever : MAX_MSG_LEN - 1;
+        int recieverBytes = recvfrom(socketInfo, buffer, MAX_MSG_LEN, 0, (struct sockaddr*) &peerAddress, &peerAddrLength);
+        int terminateIdx = (recieverBytes < MAX_MSG_LEN) ? recieverBytes : MAX_MSG_LEN - 1;
         buffer[terminateIdx] = 0;
 
-        printf("%s", buffer);
+        int prepend = List_prepend(messageList, buffer);
+
+        if(prepend == -1){
+            fprintf(stderr, "There is an error with the list insertion");
+        }
+        
+        //Need to get print message thread instead of just printing the message here
+        //printf("%s", buffer);
+
+        //signal writer to write
+        printMessageConditionSignal();
+
     }
 }
 
 
-void recieveCreateThread(char* p)
-{
+void recieveCreateThread(char* p, List* l){
     myPort = p;
-    //recieverUDPSetup();
+    messageList = l;
 
-    //messageList = messageList;
-    int threadVal = pthread_create(&recieveThread, NULL, recieverUDPSetup, NULL);
+    int threadVal = pthread_create(&recieveUDPThread, NULL, recieverUDPSetup, NULL);
 
     if(threadVal != 0){
         perror("There was an error with the thread");
@@ -95,12 +110,10 @@ void recieveCreateThread(char* p)
     }
 }
 
-void recieveCancelThread()
-{
-
+void recieveCancelThread(){
+    pthread_cancel(recieveUDPThread);
 }
 
-void recieveFinishThread()
-{
-    pthread_join(recieveThread, NULL);
+void recieveFinishThread(){
+    pthread_join(recieveUDPThread, NULL);
 }
