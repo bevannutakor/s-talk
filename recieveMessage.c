@@ -10,6 +10,8 @@
 
 #include "list.h"
 #include "printMessage.h"
+#include "messageInput.h"
+#include "sendMessage.h"
 
 #define MAX_MSG_LEN 65506
 
@@ -52,7 +54,9 @@ static void* recieverUDPSetup()
         socketBind = bind(socketInfo, listIterator->ai_addr, listIterator->ai_addrlen); //create connection
 
         if(socketBind == -1){
+            close(socketInfo);
             perror("Couldn't bind socket");
+            printf("\n");
             continue;
         }
 
@@ -64,7 +68,7 @@ static void* recieverUDPSetup()
     freeaddrinfo(serverInfo);
 
     if(listIterator == NULL){
-        printf("Couldn't find a network to connect too");
+        printf("Couldn't find a network to connect too\n");
         exit(-1);
     }
 

@@ -4,6 +4,8 @@
 
 #include "recieveMessage.h"
 #include "printMessage.h"
+#include "messageInput.h"
+#include "sendMessage.h"
 #include "list.h"
 
 #define MAX_STR_LEN 1000
@@ -17,13 +19,17 @@ int main(int argc, char *argv[]){
         char* remoteMachineName = argv[2];
         char* remotePort = argv[3];
 
-        List* list = List_create();
+        List* messageList = List_create();
         //all threads
-        recieveCreateThread(myPort, list);
-        printMessageCreateThread(list);
+        messageInputCreateThread(messageList);
+        sendMessageCreateThread(remoteMachineName, remotePort, messageList);
+        recieveCreateThread(myPort, messageList);
+        printMessageCreateThread(messageList);
 
 
         //thread finishing
+        messageInputFinishThread();
+        sendMessageFinishThread();
         recieveFinishThread();
         printMessageFinishThread();
         

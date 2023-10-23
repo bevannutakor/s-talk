@@ -27,18 +27,25 @@ static void* printMessage(){
     //operations to write message to screen
     char* message;
     int messageCount;
+    messageCount = List_count(messageList);
     while(1){
-        messageCount = List_count(messageList);
-
-        if(messageCount == 0){
-            //get out of the loop, and signal another thread
-            break;
-        }
+        //printf("Incoming message!: \n");
         message = List_trim(messageList);
-        printf("%s", message);
+        
+        printf("%s\n", message);
         
         message = NULL;
-        
+        messageCount = List_count(messageList);
+        if(messageCount == 0){
+            //here we lock it instead of canceling the entire loop
+            pthread_mutex_lock(&printMessageMutexCondition);
+            //A critical section: Do not do anything until signalled by c
+            {
+                pthread_cond_wait(&printMessageCondition, &printMessageMutexCondition);
+            }
+
+            pthread_mutex_unlock(&printMessageMutexCondition);
+        }
     }
 }
 
