@@ -79,7 +79,7 @@ static void* recieverUDPSetup()
         /*
         What should happen -> a message has been recived
                               so we insert the message into the front(head) of linked list
-                              after get a writing thread to write that message to the screen
+                              after that get a writing thread to write that message to the screen
         */
         socklen_t peerAddrLength = sizeof(peerAddress);
         int recieverBytes = recvfrom(socketInfo, buffer, MAX_MSG_LEN, 0, (struct sockaddr*) &peerAddress, &peerAddrLength);
@@ -91,9 +91,6 @@ static void* recieverUDPSetup()
         if(prepend == -1){
             fprintf(stderr, "There is an error with the list insertion");
         }
-        
-        //Need to get print message thread instead of just printing the message here
-        //printf("%s", buffer);
 
         //signal writer to write
         printMessageConditionSignal();

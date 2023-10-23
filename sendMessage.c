@@ -9,6 +9,9 @@
 #include <netinet/in.h>
 
 #include "list.h"
+#include "printMessage.h"
+#include "messageInput.h"
+#include "recieveMessage.h"
 
 #define MAX_MSG_LEN 65506
 
@@ -71,15 +74,32 @@ static void* sendUDPSetup(){
 
         pthread_mutex_unlock(&sendMessageConditionMutex);
 
-        printf("testing:\n");
         message = List_remove(messageList);
         
         messageLength = strlen(message);
 
         //send message
         sendTo = sendto(socketInfo, message, messageLength, 0, listIterator->ai_addr, listIterator->ai_addrlen);
-    
+
+        if(sendTo == -1){
+            perror("Message was not sent\n");
+            exit(-1);
+        }
+
         messageCount = List_count(messageList);
+
+        char endMessage[2];
+        endMessage[0] = '!';
+        endMessage[1] = '\0';
+
+        int compareResult = strcmp(message, endMessage);
+
+        if(compareResult == 0){
+            messageInputCancelThread();
+            recieveCancelThread();
+            printMessageCancelThread();
+            break;
+        }
 
         while(messageCount != 0);
     }

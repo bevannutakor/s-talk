@@ -5,6 +5,9 @@
 
 #include "list.h"
 #include "printMessage.h"
+#include "recieveMessage.h"
+#include "sendMessage.h"
+#include "messageInput.h"
 
 #define MAX_MSG_LEN 65506
 
@@ -17,7 +20,7 @@ static pthread_cond_t printMessageCondition = PTHREAD_COND_INITIALIZER;
 static void* printMessage(){
 
     pthread_mutex_lock(&printMessageMutexCondition);
-    //A critical section: Do not do anything until signalled by c
+    //Do not do anything until signalled
     {
         pthread_cond_wait(&printMessageCondition, &printMessageMutexCondition);
     }
@@ -33,13 +36,24 @@ static void* printMessage(){
         message = List_trim(messageList);
         
         printf("%s\n", message);
+
+        char endMessage[2];
+        endMessage[0] = '!';
+        endMessage[1] = '\0';
+        int compareResult = strcmp(message, endMessage);
+
+        if(compareResult == 0){
+            messageInputCancelThread();
+            sendMessageCancelThread();
+            recieveCancelThread();
+            break;
+        }
         
         message = NULL;
         messageCount = List_count(messageList);
         if(messageCount == 0){
             //here we lock it instead of canceling the entire loop
             pthread_mutex_lock(&printMessageMutexCondition);
-            //A critical section: Do not do anything until signalled by c
             {
                 pthread_cond_wait(&printMessageCondition, &printMessageMutexCondition);
             }
